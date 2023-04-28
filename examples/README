@@ -1,0 +1,203 @@
+Package: collie
+Version: V00-04-13
+
+This directory contains two example programs for using the collie
+package.  The first is an example I/O program for creating the input
+files for the limit calculation.  The second is an example of how to
+calculate limits using these input files.
+
+
+File: collieIOexample.cc
+
+This file contains the code required to create an input file for the
+limit calculation.  The main steps are as follows (additional comments
+are in the file):
+
+1) Create your CollieIOFile and define your input parameters.  
+
+2) Create mass points for each set of distributions to be evaluated.
+Each mass point is defined by a data histogram, signal histogram, and
+a set of background histograms.  Backgrounds can be grouped as
+appropriate.  The mass index given can be treated as any sensitive
+parameter, provided it is unique.  Variables indices in two dimensions
+are allowed.
+
+2a) All input distributions are expected to be normalized to the
+expected numbers of events.  Systematics should be in terms of the
+relative uncertainty: percent(%) of nominal values.
+
+3) Choose whether or not to smooth your input histograms.  If yes,
+choose the step size.  See caveat below....
+
+4) Associate systematics with each signal and background distribution,
+for each mass (index).  Systematics can be flat (same value for all
+instances of the final variable) or by shape (vary as a function of
+final variable).
+
+5) Store the file.
+
+The program outputs an I/O file for the calculation and a histogram
+file showing the results of the input distributions and their treatment.
+
+
+*************************CAVEAT************************************
+The smoothing and interpolation routines provided within the collie
+package should not be used without carefully validating the
+resulting output histograms.  There are many instances where either
+smoothing or interpolation are not appropriate, or require special
+care.  It is a generally unwise practice to blindly trust any program
+under any circumstances.
+*******************************************************************
+
+
+
+File: exampleLimitCalculation.cc
+File: exampleXsecMeasurement.cc
+File: exampleFastApproxLimitCalculation.cc
+
+These files contain examples for calculating limits based on the CLs
+definition and for probing a data excess for a specific cross section.
+Detailed notations exist in the example file.  There are three basic
+CLs calculations available which are associated with four classes:
+
+	1) CLfast: This class will calculate confidence levels without
+	including systematic uncertainties.  This is the fastest calculation
+	and should be used for quick estimates of file integrity or a rough
+	estimate of CL values.
+
+	2) CLsyst: This class calculates confidence levels including
+	systematic uncertainties.  
+
+	3) CLfit: This class calculates confidence levels using a profile
+	likelihood fitting technique.  This class uses just one fit to
+	the background hypothesis, while excluding signal bins.  The
+	user must specify the level at which bins will be excluded
+	(read CLfit.hh for details).  This is a much slower
+	calculation, so expect your jobs to take a long time.  Careful
+	inspection of the fitted distributions is recommended and
+	essential.
+
+	4) CLfit2: This class calculates confidence levels using a profile
+	likelihood fitting technique.  Two fits are performed for each
+	pseudo-experiment, one for the s+b hypothesis and one for the
+	b-only hypothesis.  This is the slowest calculation, so
+	expect your jobs to take a long time.  Careful inspection of the
+	fitted distributions is recommended.
+
+The FastApproximation code does not explicitly require a user to
+choose a CLs calculation, but rather performs an internal estimate of
+what one should expect to obtain calculating a limit with the CLfit2
+algorithm.  This approximation should be accurate to within a few
+percent (~2-5%).  The calculation returns the expected and observed
+limits in one job, as well as the +/-1,2 sigma limit values and the
+LLR values.  The speed of this algorithm should be vastly greater than
+the CLfit2 algorithm, with the caveat that it is an approximation (a
+GOOD approximation, but nonetheless not a full calculation).
+
+The collie package also includes four general calculation options.
+The code assumes you have correctly input your signal in terms of the
+expected number of events.  All calculations are thus performed
+relative to the input cross section for your channel(s).
+
+	1) CrossSectionLimit: This class calculates the factor by
+	which the signal must be scaled to exclude a signal at the
+	specified confidence level (default is 95%). This calculation
+	bases its comparison to the median confidence level for the
+	signal+background hypothesis.  THEREFORE DO NOT CONSIDER THIS A VALID
+	TEST FOR EVIDENCE OR DISCOVERY!!!  The CLs framework fails for
+	instances without a valid background-only hypothesis!
+
+	2) ExclusionLimit: This class calculates the factor by which
+	the luminosity must be scaled to exclude a signal at the specified
+	confidence level (default is 95%).  The observed data values do not
+	change, so this test cannot properly calculate observed limits.
+
+	3) ThreeSigmaEvidence: This class calculates the factor by
+	which the luminosity must be scaled to validate a signal at
+	3-sigma. The calculation bases its comparison to the median or
+	observed confidence level for background.  This class should be used
+	for estimating the significance for a large signal.  Five
+	sigma discovery calculations are VERY computationally
+	intensive and the semi-Frequentist CLs formulation is not a
+	good choice for this problem.
+
+	4) CrossSectionCalc: This class provides a cross section scan
+	of the observed value for the CLs+b statistic.  This scan
+	allows a determination of the signal cross section factor that
+	is most compatible with that observed in the data.  A macro is
+	provided to extract the cross section measurement and its
+	associated uncertainty.
+
+
+
+
+
+File: collieIOcondenser.cc
+
+This file contains the code used to condense multiple collieIO files
+into a single collieIO file.  This procedure should improve the speed
+of calculations that include MINUIT fits.  The user must supply a list
+of channels to be combined.  Only one mass can be combined in a given
+file.  Following the condensing procedure, the resulting output file
+(file name and collie channel name provided by the user) can be used
+in the same manner as any other collieIO file.
+
+The internal method takes several arguments:
+
+Arguments:
+1)  Output ROOT file name      (char string)
+2)  Collie output channel name (char string, in quotes)
+3)  List of input files        (text file)
+4)  Mass point                 (integer)
+5)  Low S/B rebinning factor   (floating point, not command-line accessible)
+6)  S/B cutoff threshold       (floating point, not command-line accessible)
+7)  Low S/B rebinning fraction (floating point, not command-line accessible)
+
+Users should generally not need to alter the last three arguments, but
+this can be achieved by editing the source code.
+
+
+
+File: resultsFileCombiner.cc
+
+This file contains the code used to combine results of calculations
+(limit, llr, etc) for different model points (eg, mass points) into
+one file.  This allows you to run parallel collie jobs and combine the
+results into one file.
+
+The internal method takes several arguments:
+
+Arguments:
+1)   Output ROOT file name      (char string)  
+2)   List of expected limit input files sorted by mass        (text file)
+3)   List of observed limit input files sorted by mass        (text file)
+  
+The following arguments are not required:
+4) List of -2 sigma limit input files sorted by mass        (text file)
+5) List of -1 sigma limit input files sorted by mass        (text file)
+6) List of +1 sigma limit input files sorted by mass        (text file)
+7) List of +2 sigma limit input files sorted by mass        (text file)
+
+
+
+
+File: xsecFitLoader.cc
+
+This file contains the code used to apply the results of a cross
+section fit to another set of inputs.  Eg, applying the results of a
+cross section fit to a MVA output to a dijet mass distribution.
+CAVEAT: This code will work to apply a fit result to a subset of input
+channels (eg, fit to EM + MU inputs and apply the fit only to EM
+inputs), but cannot be logically applied to a superset.  If there are
+systematic uncertainties present in the new channels that were not in
+the channels that were originally fit, then they cannot be assinged a
+value.
+
+
+The executable takes several arguments:
+
+Arguments:
+1)  Output ROOT file name  (char string)
+2)  List of input files (test file)
+3)  Name of ROOT file from which to extract fit results (ie, output of xsec fit procedure)  (char string)
+4)  Mass point (integer)

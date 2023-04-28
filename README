@@ -1,0 +1,50 @@
+Package: Collie
+Version: V00-04-13
+
+Collie is a limit setting software suite.  The structure is divided
+into two pieces: file I/O and limit calculation.  Thus, the procedure
+is broken into two steps: creating Collie I/O files and evaluating a
+limit.
+
+The software requires some base libraries:
+
+ROOT (v5_25 or greater)
+
+As of collie V00-04-00, the dependencies on the CLHEP and MINUIT
+packages have been migrated inside the collie release.  This now
+reduces the need for a specific effort on the part of users to port to
+arbitrary operating environments.  
+==>The CLHEP release included is v2.0.4.5.  
+==>The MINUIT release is modified to allow up to 200 parameters in a
+   given fit.
+
+There is a Makefile which will generate four libraries and the
+executables in the collie/examples directory. A successful build of
+the collie package will create the following files:
+
+collie/lib/libCollieIO.so 
+collie/lib/libCollieLimit.so
+collie/CLHEP/lib/libCollieCLHEP.so 
+collie/minuit/lib/libCollieMinuit.a
+
+collie/examples/collieIOcondenser.exe  
+collie/examples/collieLimitCalc.exe  
+collie/examples/resultsFileCombiner.exe
+collie/examples/collieIOmaker.exe      
+collie/examples/collieXsecCalc.exe
+collie/examples/collieFastApprox.exe   
+collie/examples/collieXsecFitLoader.exe
+
+
+***Begin*********Instructions for Setup at DZero**********************
+
+Using tcsh: Use the collie/setup_Collie.tcsh script to perform your setup for Collie.
+
+Using bash: Use the collie/setup_Collie.bash script to perform your setup for Collie.
+
+***End*********Instructions for Setup at DZero**********************
+
+Non-DZero users may modify the setup scripts to ensure that the
+ROOTSYS environment variable is specified.  This should satisfy the
+only external dependence.  Also, collie is currently developed to
+build with gcc V3.4.3 and has not been tested explicitly with gcc V4.
